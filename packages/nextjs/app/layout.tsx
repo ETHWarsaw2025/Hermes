@@ -1,7 +1,7 @@
 import "@rainbow-me/rainbowkit/styles.css";
 import { ScaffoldEthAppWithProviders } from "~~/components/ScaffoldEthAppWithProviders";
 import { ThemeProvider } from "~~/components/ThemeProvider";
-import MiniKitProvider from "~~/components/MiniKitProvider";
+import { MiniKitContextProvider } from "~~/providers/MiniKitProvider";
 import "~~/styles/globals.css";
 import { getMetadata } from "~~/utils/scaffold-eth/getMetadata";
 
@@ -18,11 +18,11 @@ const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body>
-        <MiniKitProvider>
+        <MiniKitContextProvider>
           <ThemeProvider enableSystem>
             <ScaffoldEthAppWithProviders>{children}</ScaffoldEthAppWithProviders>
           </ThemeProvider>
-        </MiniKitProvider>
+        </MiniKitContextProvider>
       </body>
     </html>
   );

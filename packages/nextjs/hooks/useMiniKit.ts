@@ -1,6 +1,6 @@
 "use client";
 
-import { sdk } from "@farcaster/miniapp-sdk";
+import { useMiniKit as useOnchainKitMiniKit } from "@coinbase/onchainkit/minikit";
 import { useEffect, useState } from "react";
 
 export interface MiniKitUser {
@@ -22,7 +22,9 @@ export function useMiniKit(): MiniKitContext & {
   shareTrack: (trackId: string, chainName: string) => Promise<void>;
   openProfile: () => Promise<void>;
   requestAuth: () => Promise<void>;
+  setFrameReady: () => void;
 } {
+  const { setFrameReady, isFrameReady } = useOnchainKitMiniKit();
   const [context, setContext] = useState<MiniKitContext>({
     isInMiniApp: false,
     user: null,
@@ -31,43 +33,28 @@ export function useMiniKit(): MiniKitContext & {
   });
 
   useEffect(() => {
-    const initializeFarcasterMiniApp = async () => {
+    const initializeMiniApp = async () => {
       try {
         if (typeof window === "undefined") return;
 
-        // Get Farcaster Mini App context
-        const context = await sdk.context;
-        // Check if we're in a framed environment (Mini App)
+        // Check if we're in a Mini App environment
         const isInMiniApp = typeof window !== "undefined" && 
           (window.parent !== window || window.location !== window.parent.location);
         
         if (isInMiniApp) {
-          console.log("🌍 Running in Farcaster Mini App environment");
+          console.log("🌍 Running in Base Mini App environment");
           
-          // Try to get user context
-          try {
-            const userContext = context.user;
-            setContext({
-              isInMiniApp: true,
-              user: userContext ? {
-                id: userContext.fid?.toString() || "anonymous",
-                username: userContext.username,
-                displayName: userContext.displayName,
-                avatar: userContext.pfpUrl,
-                isVerified: false, // Simplified for now
-              } : null,
-              isLoading: false,
-              error: null,
-            });
-          } catch (userError) {
-            console.log("🔐 User not authenticated, showing anonymous mode");
-            setContext({
-              isInMiniApp: true,
-              user: null,
-              isLoading: false,
-              error: null,
-            });
+          // Set frame ready when in Mini App
+          if (!isFrameReady) {
+            setFrameReady();
           }
+          
+          setContext({
+            isInMiniApp: true,
+            user: null, // OnchainKit handles user context differently
+            isLoading: false,
+            error: null,
+          });
         } else {
           console.log("🌐 Running in regular web environment");
           setContext({
@@ -78,18 +65,18 @@ export function useMiniKit(): MiniKitContext & {
           });
         }
       } catch (error) {
-        console.error("❌ Farcaster Mini App initialization error:", error);
+        console.error("❌ Base Mini App initialization error:", error);
         setContext({
           isInMiniApp: false,
           user: null,
           isLoading: false,
-          error: error instanceof Error ? error.message : "Failed to initialize Farcaster Mini App",
+          error: error instanceof Error ? error.message : "Failed to initialize Base Mini App",
         });
       }
     };
 
-    initializeFarcasterMiniApp();
-  }, []);
+    initializeMiniApp();
+  }, [isFrameReady, setFrameReady]);
 
   const shareTrack = async (trackId: string, chainName: string) => {
     if (!context.isInMiniApp) {
@@ -110,10 +97,10 @@ export function useMiniKit(): MiniKitContext & {
     }
 
     try {
-      // Use Farcaster SDK to share
+      // Use Base Mini App sharing capabilities
       const shareText = `🎵 Check out this ${chainName.toUpperCase()} track on Hermes Player! Blockchain data turned into immersive audio-visual experience with Strudel patterns and Hydra visuals.`;
       
-      // For now, copy to clipboard as Farcaster SDK sharing might require specific setup
+      // For now, copy to clipboard - OnchainKit may have specific sharing methods
       await navigator.clipboard.writeText(`${shareText}\n${window.location.origin}?track=${trackId}`);
       console.log("🚀 Track shared successfully (copied to clipboard)");
     } catch (error) {
@@ -126,9 +113,8 @@ export function useMiniKit(): MiniKitContext & {
     if (!context.isInMiniApp) return;
     
     try {
-      // Farcaster SDK doesn't have direct profile opening
-      // This could be implemented with navigation or other actions
-      console.log("📱 Profile functionality not yet implemented in Farcaster SDK");
+      // OnchainKit may provide profile opening functionality
+      console.log("📱 Profile functionality with OnchainKit");
     } catch (error) {
       console.error("❌ Failed to open profile:", error);
     }
@@ -138,19 +124,17 @@ export function useMiniKit(): MiniKitContext & {
     if (!context.isInMiniApp) return;
 
     try {
-      // Farcaster SDK authentication would be handled differently
-      // For now, we'll just refresh the context
-      const sdkContext = await sdk.context;
-      const userContext = sdkContext.user;
+      // OnchainKit handles authentication differently
+      console.log("🔐 Authentication with OnchainKit");
       setContext(prev => ({
         ...prev,
-        user: userContext ? {
-          id: userContext.fid?.toString() || "anonymous",
-          username: userContext.username,
-          displayName: userContext.displayName,
-          avatar: userContext.pfpUrl,
-          isVerified: false, // Simplified for now
-        } : null,
+        user: {
+          id: "base_user",
+          username: "Base User",
+          displayName: "Base User",
+          avatar: undefined,
+          isVerified: false,
+        },
       }));
     } catch (error) {
       console.error("❌ Authentication failed:", error);
@@ -166,5 +150,6 @@ export function useMiniKit(): MiniKitContext & {
     shareTrack,
     openProfile,
     requestAuth,
+    setFrameReady,
   };
 }

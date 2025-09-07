@@ -85,12 +85,19 @@ const HermesPlayer = () => {
   const [showVisuals, setShowVisuals] = useState<boolean>(true);
   
   // MiniKit integration
-  const { isInMiniApp, user, isLoading: miniKitLoading, shareTrack, openProfile, requestAuth } = useMiniKit();
+  const { isInMiniApp, user, isLoading: miniKitLoading, shareTrack, openProfile, requestAuth, setFrameReady } = useMiniKit();
 
   // Load tracks on component mount
   useEffect(() => {
     loadTracks();
   }, []);
+
+  // Initialize Mini App frame
+  useEffect(() => {
+    if (isInMiniApp && setFrameReady) {
+      setFrameReady();
+    }
+  }, [isInMiniApp, setFrameReady]);
 
   // Cleanup on unmount
   useEffect(() => {
