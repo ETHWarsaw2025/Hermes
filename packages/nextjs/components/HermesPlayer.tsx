@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MusicalNoteIcon } from "@heroicons/react/24/solid";
+import { MusicalNoteIcon, ShareIcon, UserIcon } from "@heroicons/react/24/solid";
 import { PlayerState, StrudelTrack } from "~~/types/hermes";
+import { useMiniKit } from "~~/hooks/useMiniKit";
 
 // Component to render Strudel REPL with dynamic content
 const StrudelRepl = ({ code, onStrudelEvent }: { code: string; onStrudelEvent?: (event: any) => void }) => {
@@ -82,6 +83,9 @@ const HermesPlayer = () => {
   const [selectedTrackId, setSelectedTrackId] = useState<string>("");
   const [hydraService, setHydraService] = useState<any>(null);
   const [showVisuals, setShowVisuals] = useState<boolean>(true);
+  
+  // MiniKit integration
+  const { isInMiniApp, user, isLoading: miniKitLoading, shareTrack, openProfile, requestAuth } = useMiniKit();
 
   // Load tracks on component mount
   useEffect(() => {
@@ -186,7 +190,7 @@ const HermesPlayer = () => {
     } else if (!showVisuals) {
       handleStopVisuals();
     }
-  }, [playerState.currentTrack, showVisuals]);
+  }, [playerState.currentTrack, showVisuals, handleStartVisuals, handleStopVisuals]);
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden bg-black">
@@ -209,15 +213,62 @@ const HermesPlayer = () => {
       <div className="relative z-10 min-h-screen flex flex-col p-6">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <MusicalNoteIcon className="h-12 w-12 text-white" />
+          <div className="flex items-center justify-between mb-4">
+            {/* User Profile (Mini App) */}
+            {isInMiniApp && (
+              <div className="flex items-center gap-2">
+                {user ? (
+                  <button
+                    onClick={openProfile}
+                    className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-2 text-white hover:bg-white/20 transition-colors"
+                  >
+                    {user.avatar ? (
+                      <img src={user.avatar} alt="Profile" className="w-6 h-6 rounded-full" />
+                    ) : (
+                      <UserIcon className="w-6 h-6" />
+                    )}
+                    <span className="text-sm">{user.displayName || user.username || "User"}</span>
+                    {user.isVerified && <span className="text-blue-400">✓</span>}
+                  </button>
+                ) : (
+                  <button
+                    onClick={requestAuth}
+                    className="flex items-center gap-2 bg-blue-500/20 backdrop-blur-sm rounded-full px-3 py-2 text-blue-300 hover:bg-blue-500/30 transition-colors"
+                    disabled={miniKitLoading}
+                  >
+                    <UserIcon className="w-6 h-6" />
+                    <span className="text-sm">Sign In</span>
+                  </button>
+                )}
+              </div>
+            )}
+            
+            <div className="flex items-center justify-center flex-1">
+              <MusicalNoteIcon className="h-12 w-12 text-white" />
+            </div>
+            
+            {/* Share Button */}
+            {playerState.currentTrack && (
+              <button
+                onClick={() => shareTrack(playerState.currentTrack!.id, playerState.currentTrack!.chain_name)}
+                className="flex items-center gap-2 bg-green-500/20 backdrop-blur-sm rounded-full px-3 py-2 text-green-300 hover:bg-green-500/30 transition-colors"
+                title="Share this track"
+              >
+                <ShareIcon className="w-6 h-6" />
+                {isInMiniApp && <span className="text-sm">Share</span>}
+              </button>
+            )}
           </div>
+          
           <h1 className="text-3xl font-bold text-white">Hermes Player</h1>
-          <p className="text-white/70 mt-2">Blockchain Audio + Visual Experience</p>
+          <p className="text-white/70 mt-2">
+            Blockchain Audio + Visual Experience
+            {isInMiniApp && <span className="block text-sm text-blue-300 mt-1">🌍 Base Mini App</span>}
+          </p>
         </div>
 
         {/* Controls Section */}
-        <div className="flex-1 flex flex-col justify-center max-w-4xl mx-auto w-full">
+        <div className="flex-1 flex flex-col justify-center max-w-4xl mx-auto w-full px-2 sm:px-0">
           {/* Track Selection */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-white mb-2">Select Track</label>
@@ -240,10 +291,10 @@ const HermesPlayer = () => {
           {/* Current Track Info */}
           {playerState.currentTrack && (
             <div className="mb-6 p-4 bg-black/30 rounded-lg backdrop-blur-sm border border-white/20">
-              <h3 className="font-semibold text-white">
+              <h3 className="font-semibold text-white text-center sm:text-left">
                 {playerState.currentTrack.chain_name.toUpperCase()} - Track {playerState.currentTrack.id}
               </h3>
-              <div className="grid grid-cols-2 gap-2 mt-2 text-sm text-white/70">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2 text-sm text-white/70">
                 <div>
                   <span className="font-medium">Tempo:</span> {playerState.currentTrack.musical_parameters.tempo} BPM
                 </div>

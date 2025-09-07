@@ -34,11 +34,7 @@ class HydraVisualsService {
 
       this.canvas = canvas;
       this.isInitialized = true;
-      console.log("✅ Hydra initialized successfully, testing basic pattern...");
-      
-      // Test with a simple pattern to verify it works
-      this.hydra.eval("osc(10, 0.1, 0.5).color(0.5, 0.8, 1.0).out()");
-      console.log("✅ Basic Hydra test pattern applied");
+      console.log("✅ Hydra initialized successfully with H() function");
     } catch (error) {
       console.error("Failed to initialize Hydra:", error);
       if (typeof window !== "undefined") {
@@ -74,9 +70,15 @@ class HydraVisualsService {
       console.log("🎨 Generated Hydra code for", track.chain_name, ":");
       console.log(visual);
 
-      // Apply the generated visual directly
-      console.log("🎨 Applying Strudel-based visual...");
-      this.hydra.eval(visual);
+      // Test with a simple pattern first to ensure Hydra is working
+      console.log("🧪 Testing basic Hydra functionality...");
+      this.hydra.eval("osc(10, 0.1, 0.8).color(1, 0.5, 0.8).out()");
+      
+      // Wait a moment then apply the actual visual
+      setTimeout(() => {
+        console.log("🎨 Applying generated visual...");
+        this.hydra.eval(visual);
+      }, 1000);
 
       // Start animation loop for dynamic parameters
       this.startAnimationLoop(track, playbackPosition);
@@ -130,73 +132,34 @@ class HydraVisualsService {
       hasClip: false,
       hasSometimes: false,
       multiplier: 8,
-      instrument: "gm_lead_6_voice",
-      // Enhanced pattern analysis
-      baseNote: "C4",
-      roomAmount: 2,
-      slowAmount: 8,
-      rangeMin: 0.2,
-      rangeMax: 0.8,
-      filterRange: [200, 20000],
-      addNote: "12"
+      instrument: "gm_lead_6_voice"
     };
 
     // Extract setcps value
     const cpsMatch = strudelCode.match(/setcps\(([0-9.]+)\)/);
     if (cpsMatch) info.cps = parseFloat(cpsMatch[1]);
 
-    // Extract note pattern with better parsing
+    // Extract note pattern
     const noteMatch = strudelCode.match(/n\("([^"]+)"\)/);
     if (noteMatch) {
       info.notePattern = noteMatch[1];
-      // Count unique notes in pattern
+      // Count notes in pattern
       const noteNumbers = noteMatch[1].match(/\d+/g);
-      if (noteNumbers) {
-        info.noteCount = [...new Set(noteNumbers)].length; // Unique notes only
-      }
+      if (noteNumbers) info.noteCount = noteNumbers.length;
       // Extract multiplier
       const multMatch = noteMatch[1].match(/\*(\d+)/);
       if (multMatch) info.multiplier = parseInt(multMatch[1]);
     }
 
-    // Extract scale with base note
+    // Extract scale
     const scaleMatch = strudelCode.match(/scale\('([^']+)'\)/);
     if (scaleMatch) {
-      const scaleInfo = scaleMatch[1];
-      info.scale = scaleInfo.includes('minor') ? 'minor' : 'major';
-      // Extract base note (e.g., "C4", "D4", "G4")
-      const noteMatch = scaleInfo.match(/([A-G][#b]?[0-9])/);
-      if (noteMatch) info.baseNote = noteMatch[1];
+      info.scale = scaleMatch[1].includes('minor') ? 'minor' : 'major';
     }
 
     // Extract instrument
     const instrumentMatch = strudelCode.match(/s\("([^"]+)"\)/);
     if (instrumentMatch) info.instrument = instrumentMatch[1];
-
-    // Extract room amount
-    const roomMatch = strudelCode.match(/\.room\(([0-9.]+)\)/);
-    if (roomMatch) info.roomAmount = parseFloat(roomMatch[1]);
-
-    // Extract clip range
-    const clipMatch = strudelCode.match(/\.range\(([0-9.]+),([0-9.]+)\)/);
-    if (clipMatch) {
-      info.rangeMin = parseFloat(clipMatch[1]);
-      info.rangeMax = parseFloat(clipMatch[2]);
-    }
-
-    // Extract slow amount
-    const slowMatch = strudelCode.match(/\.slow\(([0-9.]+)\)/);
-    if (slowMatch) info.slowAmount = parseFloat(slowMatch[1]);
-
-    // Extract filter range
-    const filterMatch = strudelCode.match(/\.(?:lpf|hpf)\(perlin\.range\(([0-9.]+),([0-9.]+)\)/);
-    if (filterMatch) {
-      info.filterRange = [parseFloat(filterMatch[1]), parseFloat(filterMatch[2])];
-    }
-
-    // Extract add note
-    const addMatch = strudelCode.match(/add\(note\("([^"]+)"\)\)/);
-    if (addMatch) info.addNote = addMatch[1];
 
     // Check for effects
     info.hasJux = strudelCode.includes('.jux(');
@@ -209,10 +172,10 @@ class HydraVisualsService {
     return info;
   }
 
-  private generatePatternBasedVisual(patternInfo: any, color: any, tempo: number, complexity: number, activityScore: number): string {
+  private generatePatternBasedVisual(patternInfo: any, color: any, _tempo: number, _complexity: number, _activityScore: number): string {
     const { 
       cps, noteCount, multiplier, hasJux, hasRoom, hasLpf, hasHpf, hasClip, hasSometimes, scale,
-      roomAmount, slowAmount, rangeMin, rangeMax, filterRange, baseNote, addNote
+      roomAmount, slowAmount, rangeMin, rangeMax, filterRange, addNote
     } = patternInfo;
     
     // Base frequency based on CPS and note count
@@ -231,10 +194,9 @@ class HydraVisualsService {
     // Add rotation based on note pattern
     visual += `.rotate(() => time * ${(cps * 0.1).toFixed(2)})`;
 
-    // Add scale based on clip range from Strudel
+    // Add scale based on clip effect
     if (hasClip) {
-      const scaleAmount = (rangeMax - rangeMin) * 0.5; // Use actual Strudel clip range
-      visual += `.scale(() => ${rangeMin.toFixed(2)} + Math.sin(time * ${(cps * slowAmount / 4).toFixed(2)}) * ${scaleAmount.toFixed(2)})`;
+      visual += `.scale(() => 1 + Math.sin(time * ${(cps * 2).toFixed(2)}) * 0.3)`;
     } else {
       visual += `.scale(() => 1 + Math.sin(time * ${cps.toFixed(2)}) * 0.2)`;
     }
@@ -249,16 +211,14 @@ class HydraVisualsService {
       visual += `.mult(osc(${(oscSpeed * 0.5).toFixed(2)}, 0.1, 1.57).color(${g.toFixed(2)}, ${b.toFixed(2)}, ${r.toFixed(2)}))`;
     }
 
-    // Add room effect based on actual Strudel room amount
+    // Add room effect as blur/feedback (simplified)
     if (hasRoom) {
-      const roomIntensity = roomAmount / 3; // Normalize room amount (0-3 range)
-      visual += `.blend(noise(${(roomIntensity * 2).toFixed(2)}, ${(roomIntensity * 0.2).toFixed(2)}).color(${(b * roomIntensity).toFixed(2)}, ${(r * roomIntensity).toFixed(2)}, ${(g * roomIntensity).toFixed(2)}))`;
+      visual += `.blend(noise(${(_activityScore / 15).toFixed(2)}, 0.1).color(${(b * 0.8).toFixed(2)}, ${(r * 0.8).toFixed(2)}, ${(g * 0.8).toFixed(2)}))`;
     }
 
-    // Add filter effects based on actual Strudel filter ranges
+    // Add filter effects as visual modulation (simplified)
     if (hasLpf) {
-      const filterSpeed = filterRange[1] / 10000; // Normalize high frequency range
-      visual += `.modulate(noise(${filterSpeed.toFixed(2)}, 0.1))`;
+      visual += `.modulate(noise(${(_tempo / 100).toFixed(2)}, 0.1))`;
     }
 
     if (hasHpf) {
@@ -266,11 +226,9 @@ class HydraVisualsService {
       visual += `.pixelate(${pixelSize}, ${pixelSize})`;
     }
 
-    // Add sometimes effect based on the add note parameter
+    // Add sometimes effect as occasional visual changes (simplified)
     if (hasSometimes) {
-      const addNoteValue = parseInt(addNote) || 12;
-      const shapeComplexity = Math.min(noteCount + (addNoteValue / 12), 8);
-      visual += `.blend(shape(${shapeComplexity.toFixed(0)}, 0.3, 0.1).color(${b.toFixed(2)}, ${g.toFixed(2)}, ${r.toFixed(2)}).scale(() => 1 + Math.sin(time * ${(cps * 2).toFixed(2)}) * 0.3))`;
+      visual += `.blend(shape(${Math.min(noteCount, 8)}, 0.3, 0.1).color(${b.toFixed(2)}, ${g.toFixed(2)}, ${r.toFixed(2)}))`;
     }
 
     visual += `.out()`;
@@ -278,7 +236,7 @@ class HydraVisualsService {
     return visual;
   }
 
-  private startAnimationLoop(_track: StrudelTrack, _startPosition: number = 0) {
+  private startAnimationLoop(_track: StrudelTrack, _startPosition = 0) {
 
     const animate = () => {
       if (this.hydra && this.isInitialized) {
@@ -292,20 +250,9 @@ class HydraVisualsService {
     animate();
   }
 
-  updatePlaybackPosition(position: number): void {
-    this.currentPlaybackPosition = position;
-    
-    // Update visuals based on playback position
-    if (this.hydra && this.currentTrack) {
-      // Create dynamic visual updates based on position
-      const beatPosition = position % (60 / (this.currentTrack.musical_parameters.tempo / 60)); // Beat sync
-      
-      // Update visual parameters dynamically
-      if (beatPosition < 0.1) { // On beat
-        console.log("🎵 Beat detected, updating visuals");
-        // Could trigger visual effects on beat
-      }
-    }
+  updatePlaybackPosition(_position: number): void {
+    // Update any position-dependent visual parameters
+    // This can be used to sync visuals more precisely with audio
   }
 
   pause(): void {

@@ -1,0 +1,26 @@
+{
+  "accountAssociation": {
+    "header": "placeholder_header",
+    "payload": "placeholder_payload", 
+    "signature": "placeholder_signature"
+  },
+  "frame": {
+    "version": "1",
+    "name": "Hermes Player",
+    "subtitle": "Blockchain Audio + Visual Experience",
+    "description": "🎵 Turn blockchain data into immersive audio-visual experiences! Real-time Strudel patterns with synchronized Hydra visuals for Ethereum, Base, and more. Experience the sound of DeFi through generative music and stunning WebGL visuals.",
+    "iconUrl": "https://nextjs-bs4wwxt9t-shahryarbhms-projects.vercel.app/icon-192.png",
+    "homeUrl": "https://nextjs-bs4wwxt9t-shahryarbhms-projects.vercel.app/",
+    "splashImageUrl": "https://nextjs-bs4wwxt9t-shahryarbhms-projects.vercel.app/splash.png",
+    "splashBackgroundColor": "#000000",
+    "heroImageUrl": "https://nextjs-bs4wwxt9t-shahryarbhms-projects.vercel.app/hero.png",
+    "tagline": "Experience the sound of blockchain data",
+    "screenshotUrls": [
+      "https://nextjs-bs4wwxt9t-shahryarbhms-projects.vercel.app/screenshot1.png",
+      "https://nextjs-bs4wwxt9t-shahryarbhms-projects.vercel.app/screenshot2.png"
+    ],
+    "primaryCategory": "music",
+    "tags": ["blockchain", "music", "defi", "visualization", "ethereum", "base", "strudel", "hydra"],
+    "webhookUrl": "https://nextjs-bs4wwxt9t-shahryarbhms-projects.vercel.app/api/webhook"
+  }
+}

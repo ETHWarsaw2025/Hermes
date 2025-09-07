@@ -1,80 +1,178 @@
-# 🏗 Scaffold-ETH 2
+# 🎵 Hermes Player - Blockchain Audio + Visual Experience
 
 <h4 align="center">
-  <a href="https://docs.scaffoldeth.io">Documentation</a> |
-  <a href="https://scaffoldeth.io">Website</a>
+  <a href="https://nextjs-ghi5b628d-shahryarbhms-projects.vercel.app">Live Demo</a> |
+  <a href="https://nextjs-ghi5b628d-shahryarbhms-projects.vercel.app/.well-known/farcaster.json">Farcaster Manifest</a> |
+  <a href="https://miniapps.farcaster.xyz">Mini Apps</a>
 </h4>
 
-🧪 An open-source, up-to-date toolkit for building decentralized applications (dapps) on the Ethereum blockchain. It's designed to make it easier for developers to create and deploy smart contracts and build user interfaces that interact with those contracts.
+🎵 **The first blockchain audio-visual experience as a Farcaster Mini App!** Turn real-time blockchain data into immersive generative music with synchronized WebGL visuals. Experience the sound of DeFi through Strudel patterns and Hydra visuals.
 
-⚙️ Built using NextJS, RainbowKit, Foundry, Wagmi, Viem, and Typescript.
+🌍 **Built as a Farcaster Mini App** for instant discovery and viral sharing through social feeds.
 
-- ✅ **Contract Hot Reload**: Your frontend auto-adapts to your smart contract as you edit it.
-- 🪝 **[Custom hooks](https://docs.scaffoldeth.io/hooks/)**: Collection of React hooks wrapper around [wagmi](https://wagmi.sh/) to simplify interactions with smart contracts with typescript autocompletion.
-- 🧱 [**Components**](https://docs.scaffoldeth.io/components/): Collection of common web3 components to quickly build your frontend.
-- 🔥 **Burner Wallet & Local Faucet**: Quickly test your application with a burner wallet and local faucet.
-- 🔐 **Integration with Wallet Providers**: Connect to different wallet providers and interact with the Ethereum network.
+## 🏗️ Architecture
 
-![Debug Contracts tab](https://github.com/scaffold-eth/scaffold-eth-2/assets/55535804/b237af0c-5027-4849-a5c1-2e31495cccb1)
+```mermaid
+graph TB
+    A[🌍 Hermes Player<br/>Farcaster Mini App] --> B[🎵 Strudel Audio Engine<br/>@strudel/embed]
+    A --> C[🎨 Hydra Visual Engine<br/>hydra-synth]
+    A --> D[⛓️ Golem DB Backend<br/>Blockchain Data]
+    A --> E[📱 Farcaster SDK<br/>@farcaster/miniapp-sdk]
+    
+    B --> F[🎼 Real-time Pattern Generation]
+    C --> G[✨ Synchronized Visuals]
+    D --> H[📊 Chain Analytics]
+    E --> I[🔗 Social Sharing]
+    
+    F --> J[🎧 Audio Output]
+    G --> K[🌈 WebGL Visuals]
+    H --> L[📈 KPI Data]
+    I --> M[📢 Viral Distribution]
+    
+    style A fill:#0052ff,stroke:#fff,color:#fff
+    style B fill:#ff6b6b,stroke:#fff,color:#fff  
+    style C fill:#4ecdc4,stroke:#fff,color:#fff
+    style D fill:#45b7d1,stroke:#fff,color:#fff
+    style E fill:#96ceb4,stroke:#fff,color:#fff
+```
 
-## Requirements
+## ✨ Key Features
 
-Before you begin, you need to install the following tools:
+- 🎵 **Generative Music**: Real-time Strudel.js patterns driven by blockchain KPIs
+- 🎨 **Synchronized Visuals**: Hydra-synth WebGL visuals that respond to musical parameters  
+- ⛓️ **Multi-Chain Support**: Ethereum, Base, and more blockchain data sources
+- 📱 **Farcaster Native**: Built as a Mini App for instant social discovery
+- 🔗 **Social Sharing**: One-tap sharing for viral growth through feeds
+- 🌊 **Immersive Experience**: Fullscreen glassmorphism UI with responsive design
 
-- [Node (>= v20.18.3)](https://nodejs.org/en/download/)
-- Yarn ([v1](https://classic.yarnpkg.com/en/docs/install/) or [v2+](https://yarnpkg.com/getting-started/install))
+## 🚀 Live Demo
+
+**🌍 Try it now**: [https://nextjs-ghi5b628d-shahryarbhms-projects.vercel.app](https://nextjs-ghi5b628d-shahryarbhms-projects.vercel.app)
+
+**📱 Farcaster Mini App**: Access directly through Farcaster clients for the full social experience!
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 15 + React 19 + TypeScript
+- **Audio Engine**: Strudel.js (`@strudel/embed`) 
+- **Visual Engine**: Hydra-synth WebGL
+- **Blockchain Data**: Golem DB with Base SDK
+- **Social Platform**: Farcaster Mini App SDK
+- **Styling**: TailwindCSS + DaisyUI + Glassmorphism
+- **Deployment**: Vercel
+
+## 📋 Requirements
+
+- [Node.js (>= v22.11.0)](https://nodejs.org/en/download/) - Required for Farcaster SDK
+- [Yarn](https://classic.yarnpkg.com/en/docs/install/)
 - [Git](https://git-scm.com/downloads)
 
-## Quickstart
+## 🏃‍♂️ Quick Start
 
-To get started with Scaffold-ETH 2, follow the steps below:
+1. **Clone and install dependencies**:
 
-1. Install dependencies if it was skipped in CLI:
-
-```
-cd my-dapp-example
+```bash
+git clone <repository-url>
+cd hermes-player
 yarn install
 ```
 
-2. Run a local network in the first terminal:
+2. **Start local development**:
 
-```
+```bash
+# Start the blockchain (optional for frontend development)
 yarn chain
-```
 
-This command starts a local Ethereum network using Foundry. The network runs on your local machine and can be used for testing and development. You can customize the network configuration in `packages/foundry/foundry.toml`.
-
-3. On a second terminal, deploy the test contract:
-
-```
-yarn deploy
-```
-
-This command deploys a test smart contract to the local network. The contract is located in `packages/foundry/contracts` and can be modified to suit your needs. The `yarn deploy` command uses the deploy script located in `packages/foundry/script` to deploy the contract to the network. You can also customize the deploy script.
-
-4. On a third terminal, start your NextJS app:
-
-```
+# Start the Next.js app
 yarn start
 ```
 
-Visit your app on: `http://localhost:3000`. You can interact with your smart contract using the `Debug Contracts` page. You can tweak the app config in `packages/nextjs/scaffold.config.ts`.
+3. **Visit the app**: `http://localhost:3000`
 
-Run smart contract test with `yarn foundry:test`
+## 🎵 How It Works
 
-- Edit your smart contracts in `packages/foundry/contracts`
-- Edit your frontend homepage at `packages/nextjs/app/page.tsx`. For guidance on [routing](https://nextjs.org/docs/app/building-your-application/routing/defining-routes) and configuring [pages/layouts](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts) checkout the Next.js documentation.
-- Edit your deployment scripts in `packages/foundry/script`
+1. **Data Ingestion**: Real-time blockchain KPIs from Golem DB
+2. **Music Generation**: KPIs drive Strudel.js pattern parameters (tempo, scale, complexity)
+3. **Visual Sync**: Hydra-synth generates WebGL visuals based on musical patterns
+4. **Social Distribution**: Share tracks through Farcaster for viral growth
 
+## 🗂️ Project Structure
 
-## Documentation
+```
+packages/
+├── nextjs/                 # Farcaster Mini App
+│   ├── components/         # React components
+│   │   ├── HermesPlayer.tsx    # Main player interface
+│   │   └── MiniKitProvider.tsx # Farcaster integration
+│   ├── services/           # Core services
+│   │   ├── api/               # Golem DB & mock APIs
+│   │   └── visuals/           # Hydra visual engine
+│   ├── hooks/              # Custom React hooks
+│   │   └── useMiniKit.ts      # Farcaster Mini App hooks
+│   └── public/
+│       └── .well-known/
+│           └── farcaster.json # Mini App manifest
+└── foundry/                # Smart contracts (future expansion)
+```
 
-Visit our [docs](https://docs.scaffoldeth.io) to learn how to start building with Scaffold-ETH 2.
+## 🌍 Farcaster Mini App
 
-To know more about its features, check out our [website](https://scaffoldeth.io).
+Hermes Player is built as a native Farcaster Mini App, enabling:
 
-## Contributing to Scaffold-ETH 2
+- **🔄 Instant Access**: No downloads, launches directly in Farcaster
+- **📱 Social Native**: Built-in sharing and discovery through feeds  
+- **🤝 Viral Growth**: Every interaction becomes potential distribution
+- **🎯 Network Effects**: Grows through existing social connections
 
-We welcome contributions to Scaffold-ETH 2!
+### Mini App Features
 
-Please see [CONTRIBUTING.MD](https://github.com/scaffold-eth/scaffold-eth-2/blob/main/CONTRIBUTING.md) for more information and guidelines for contributing to Scaffold-ETH 2.
+- ✅ Farcaster SDK integration
+- ✅ Social sharing functionality  
+- ✅ Mobile-optimized responsive design
+- ✅ Proper manifest configuration
+- ✅ Production deployment ready
+
+## 🔧 Development
+
+### Adding New Blockchain Data Sources
+
+1. Extend the `StrudelTrack` interface in `types/hermes.ts`
+2. Add API integration in `services/api/`
+3. Update musical parameter mapping in `services/visuals/hydraService.ts`
+
+### Customizing Visuals
+
+The Hydra visual engine maps musical parameters to visual effects:
+
+- **Tempo** → Animation speed
+- **Scale/Notes** → Color palettes  
+- **Complexity** → Visual complexity
+- **Effects** → Shader parameters
+
+## 🚀 Deployment
+
+The app is deployed on Vercel with automatic builds:
+
+```bash
+# Deploy to production
+npx vercel --prod
+```
+
+**Production URL**: https://nextjs-ghi5b628d-shahryarbhms-projects.vercel.app
+
+## 🤝 Contributing
+
+We welcome contributions! This project combines:
+
+- 🎵 **Audio Engineering**: Strudel.js pattern development
+- 🎨 **Visual Programming**: Hydra-synth shader creation  
+- ⛓️ **Blockchain Integration**: Data source expansion
+- 📱 **Social Features**: Farcaster Mini App enhancements
+
+## 📄 License
+
+MIT License - see LICENSE file for details.
+
+---
+
+**🎵 Experience the sound of blockchain data with Hermes Player!**
