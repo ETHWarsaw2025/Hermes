@@ -1,8 +1,8 @@
 # 🎵 Hermes Player - Blockchain Audio + Visual Experience
 
 <h4 align="center">
-  <a href="https://nextjs-ghi5b628d-shahryarbhms-projects.vercel.app">Live Demo</a> |
-  <a href="https://nextjs-ghi5b628d-shahryarbhms-projects.vercel.app/.well-known/farcaster.json">Farcaster Manifest</a> |
+  <a href="https://nextjs-mumyio3nb-shahryarbhms-projects.vercel.app">Live Demo</a> |
+  <a href="https://nextjs-mumyio3nb-shahryarbhms-projects.vercel.app/.well-known/farcaster.json">Farcaster Manifest</a> |
   <a href="https://miniapps.farcaster.xyz">Mini Apps</a>
 </h4>
 
@@ -39,15 +39,15 @@ graph TB
 ## ✨ Key Features
 
 - 🎵 **Generative Music**: Real-time Strudel.js patterns driven by blockchain KPIs
-- 🎨 **Synchronized Visuals**: Hydra-synth WebGL visuals that respond to musical parameters  
-- ⛓️ **Multi-Chain Support**: Ethereum, Base, and more blockchain data sources
+- 🎨 **Vivid Synchronized Visuals**: Hydra-synth WebGL visuals with tempo-synced animations, kaleidoscope effects, and chain-specific color themes
+- ⛓️ **Multi-Chain Support**: Ethereum, Base, Bitcoin, Polygon, Arbitrum, Optimism
 - 📱 **Farcaster Native**: Built as a Mini App for instant social discovery
 - 🔗 **Social Sharing**: One-tap sharing for viral growth through feeds
 - 🌊 **Immersive Experience**: Fullscreen glassmorphism UI with responsive design
 
 ## 🚀 Live Demo
 
-**🌍 Try it now**: [https://nextjs-ghi5b628d-shahryarbhms-projects.vercel.app](https://nextjs-ghi5b628d-shahryarbhms-projects.vercel.app)
+**🌍 Try it now**: [https://nextjs-mumyio3nb-shahryarbhms-projects.vercel.app](https://nextjs-mumyio3nb-shahryarbhms-projects.vercel.app)
 
 **📱 Farcaster Mini App**: Access directly through Farcaster clients for the full social experience!
 
@@ -144,10 +144,19 @@ Hermes Player is built as a native Farcaster Mini App, enabling:
 
 The Hydra visual engine maps musical parameters to visual effects:
 
-- **Tempo** → Animation speed
-- **Scale/Notes** → Color palettes  
-- **Complexity** → Visual complexity
-- **Effects** → Shader parameters
+- **Tempo** → Animation speed and rotation frequency
+- **Complexity** → Kaleidoscope segment count and visual intensity
+- **Network Activity** → Noise levels and visual chaos
+- **Chain Type** → Color themes (Ethereum: Blue, Bitcoin: Orange, Base: Base Blue, etc.)
+- **Musical Effects** → Shader modulations and visual filters
+
+### Chain-Specific Visual Themes
+- 🔵 **Ethereum**: Deep blue (0.4, 0.6, 1.0)
+- 🟠 **Bitcoin**: Orange (1.0, 0.6, 0.0) 
+- 🟣 **Polygon**: Purple (0.8, 0.4, 1.0)
+- 🔷 **Arbitrum**: Cyan (0.2, 0.8, 1.0)
+- 🔴 **Optimism**: Red (1.0, 0.2, 0.2)
+- 🔵 **Base**: Base Blue (0.0, 0.4, 1.0)
 
 ## 🚀 Deployment
 
@@ -158,7 +167,7 @@ The app is deployed on Vercel with automatic builds:
 npx vercel --prod
 ```
 
-**Production URL**: https://nextjs-ghi5b628d-shahryarbhms-projects.vercel.app
+**Production URL**: https://nextjs-mumyio3nb-shahryarbhms-projects.vercel.app
 
 ## 🤝 Contributing
 
