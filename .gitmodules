@@ -7,3 +7,6 @@
 [submodule "packages/foundry/lib/solidity-bytes-utils"]
 	path = packages/foundry/lib/solidity-bytes-utils
 	url = https://github.com/gnsps/solidity-bytes-utils
+[submodule "packages/foundry/lib/redstone-oracles-monorepo"]
+	path = packages/foundry/lib/redstone-oracles-monorepo
+	url = https://github.com/redstone-finance/redstone-oracles-monorepo
