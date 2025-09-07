@@ -133,21 +133,24 @@ const HermesPlayer = () => {
     if (!showVisuals) return;
 
     try {
-      // Stop existing visuals first
-      if (hydraService) {
-        hydraService.stop();
-        hydraService.destroy();
+      const canvas = document.getElementById("hydra-canvas") as HTMLCanvasElement;
+      if (!canvas) {
+        console.error("Hydra canvas not found");
+        return;
       }
 
-      // Dynamically import Hydra service
-      const { createHydraVisualsService } = await import("~~/services/visuals/hydraService");
-      const service = createHydraVisualsService();
-      setHydraService(service);
-
-      const canvas = document.getElementById("hydra-canvas") as HTMLCanvasElement;
-      if (canvas) {
-        console.log("🎨 Starting visuals for track:", track.chain_name);
+      // If service doesn't exist, create it
+      if (!hydraService) {
+        const { createHydraVisualsService } = await import("~~/services/visuals/hydraService");
+        const service = createHydraVisualsService();
+        setHydraService(service);
+        console.log("🎨 Creating new Hydra service for track:", track.chain_name);
         await service.startVisuals(canvas, track);
+      } else {
+        // Reuse existing service, just stop current visuals and start new ones
+        hydraService.stop();
+        console.log("🎨 Reusing Hydra service for track:", track.chain_name);
+        await hydraService.startVisuals(canvas, track);
       }
     } catch (error) {
       console.error("Error starting visuals:", error);
@@ -157,7 +160,7 @@ const HermesPlayer = () => {
   const handleStopVisuals = () => {
     if (hydraService) {
       hydraService.stop();
-      setHydraService(null);
+      // Don't set to null, keep the service for reuse
     }
   };
 
@@ -197,20 +200,21 @@ const HermesPlayer = () => {
       {/* Fullscreen Hydra Canvas Background */}
       <canvas
         id="hydra-canvas"
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full"
         width={1920}
         height={1080}
         style={{ 
           display: showVisuals ? "block" : "none",
-          backgroundColor: "black"
+          backgroundColor: "black",
+          zIndex: 1
         }}
       />
 
-      {/* Dark overlay for better text readability */}
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+      {/* Light overlay for better text readability - no blur to keep visuals vivid */}
+      <div className="absolute inset-0 bg-black/20" style={{ zIndex: 2 }} />
 
       {/* UI Overlay */}
-      <div className="relative z-10 min-h-screen flex flex-col p-6">
+      <div className="relative min-h-screen flex flex-col p-6" style={{ zIndex: 10 }}>
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-between mb-4">

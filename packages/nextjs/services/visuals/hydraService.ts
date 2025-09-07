@@ -4,6 +4,7 @@ class HydraVisualsService {
   private hydra: any = null;
   private canvas: HTMLCanvasElement | null = null;
   private isInitialized: boolean = false;
+  private isInitializing: boolean = false;
   private currentVisual: string = "";
   private animationFrame: number | null = null;
 
@@ -13,9 +14,18 @@ class HydraVisualsService {
 
   private async initializeHydra(canvas: HTMLCanvasElement) {
     try {
+      // Prevent multiple initializations
+      if (this.isInitializing || this.isInitialized) {
+        console.log("🔄 Hydra already initializing or initialized");
+        return;
+      }
+
+      this.isInitializing = true;
+
       // Check if we're in browser environment
       if (typeof window === "undefined") {
         console.log("⏳ Hydra initialization deferred - waiting for browser environment");
+        this.isInitializing = false;
         return;
       }
 
@@ -25,17 +35,21 @@ class HydraVisualsService {
       // Initialize Hydra with the canvas
       this.hydra = new Hydra.default({
         canvas: canvas,
-        detectAudio: false, // We'll sync manually with Strudel
+        detectAudio: false,
         enableStreamCapture: false,
+        width: canvas.width,
+        height: canvas.height,
       });
 
-      // Initialize the H() function for pattern integration
-      await this.initializeHFunction();
+      // Test Hydra with a simple pattern
+      this.hydra.eval("osc(20, 0.1, 0.8).color(1, 0.5, 0.8).out()");
 
       this.canvas = canvas;
       this.isInitialized = true;
-      console.log("✅ Hydra initialized successfully with H() function");
+      this.isInitializing = false;
+      console.log("✅ Hydra initialized successfully and ready for visuals");
     } catch (error) {
+      this.isInitializing = false;
       console.error("Failed to initialize Hydra:", error);
       if (typeof window !== "undefined") {
         throw new Error("Failed to initialize visual engine");
@@ -43,23 +57,20 @@ class HydraVisualsService {
     }
   }
 
-  private async initializeHFunction(): Promise<void> {
-    try {
-      // For now, skip the H() function to avoid shader compilation issues
-      // We'll implement basic pattern-driven visuals without the H() function
-      console.log("✅ Hydra initialized with basic pattern support");
-    } catch (error) {
-      console.warn("Failed to initialize H() function:", error);
-    }
-  }
 
   async startVisuals(canvas: HTMLCanvasElement, track: StrudelTrack, playbackPosition: number = 0): Promise<void> {
     try {
-      if (!this.isInitialized || !this.hydra) {
+      // Wait for initialization to complete
+      if (!this.isInitialized) {
         await this.initializeHydra(canvas);
+        
+        // Wait for initialization to complete
+        while (this.isInitializing) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
       }
 
-      if (!this.hydra) {
+      if (!this.hydra || !this.isInitialized) {
         throw new Error("Failed to initialize Hydra visual engine");
       }
 
@@ -70,15 +81,9 @@ class HydraVisualsService {
       console.log("🎨 Generated Hydra code for", track.chain_name, ":");
       console.log(visual);
 
-      // Test with a simple pattern first to ensure Hydra is working
-      console.log("🧪 Testing basic Hydra functionality...");
-      this.hydra.eval("osc(10, 0.1, 0.8).color(1, 0.5, 0.8).out()");
-      
-      // Wait a moment then apply the actual visual
-      setTimeout(() => {
-        console.log("🎨 Applying generated visual...");
-        this.hydra.eval(visual);
-      }, 1000);
+      // Apply the visual directly (no setTimeout to avoid race conditions)
+      console.log("🎨 Applying generated visual...");
+      this.hydra.eval(visual);
 
       // Start animation loop for dynamic parameters
       this.startAnimationLoop(track, playbackPosition);
@@ -115,8 +120,44 @@ class HydraVisualsService {
 
     const color = chainColors[chain_name as keyof typeof chainColors] || chainColors.default;
 
-    // Generate visuals based on Strudel pattern characteristics
-    return this.generatePatternBasedVisual(patternInfo, color, tempo, complexity, activityScore);
+    // Generate simple, vivid visuals
+    return this.generateVividVisual(color, tempo, complexity, activityScore);
+  }
+
+  private generateVividVisual(color: any, tempo: number, complexity: number, activityScore: number): string {
+    // Create vivid, animated visuals based on parameters
+    const speed = Math.max(0.1, tempo / 60); // Convert BPM to frequency
+    const intensity = Math.max(0.5, complexity / 10);
+    const activity = Math.max(0.3, activityScore / 100);
+    
+    // Base oscillator with vivid colors
+    const r = Math.max(0.3, color.r);
+    const g = Math.max(0.3, color.g);  
+    const b = Math.max(0.3, color.b);
+    
+    // Generate vivid, animated visual
+    let visual = `osc(${(speed * 10).toFixed(1)}, ${(intensity * 0.2).toFixed(1)}, ${(activity * 2).toFixed(1)})`;
+    visual += `.color(${r.toFixed(2)}, ${g.toFixed(2)}, ${b.toFixed(2)})`;
+    
+    // Add rotation based on tempo
+    visual += `.rotate(() => time * ${(speed * 0.5).toFixed(2)})`;
+    
+    // Add scaling animation
+    visual += `.scale(() => 1.2 + Math.sin(time * ${speed.toFixed(2)}) * 0.3)`;
+    
+    // Add kaleidoscope effect based on complexity
+    const kaleidCount = Math.max(3, Math.min(8, Math.floor(complexity)));
+    visual += `.kaleid(${kaleidCount})`;
+    
+    // Add secondary oscillator for richness
+    visual += `.mult(osc(${(speed * 5).toFixed(1)}, 0.1, 1.5).color(${g.toFixed(2)}, ${b.toFixed(2)}, ${r.toFixed(2)}))`;
+    
+    // Add noise for texture based on activity
+    visual += `.add(noise(${(activity * 3).toFixed(1)}, ${(activity * 0.1).toFixed(2)}).color(${b.toFixed(2)}, ${r.toFixed(2)}, ${g.toFixed(2)}))`;
+    
+    visual += `.out()`;
+    
+    return visual;
   }
 
   private extractPatternInfo(strudelCode: string) {
@@ -269,9 +310,13 @@ class HydraVisualsService {
       this.animationFrame = null;
     }
 
-    if (this.hydra) {
-      // Clear the canvas
-      this.hydra.eval("solid(0, 0, 0).out()");
+    if (this.hydra && this.isInitialized) {
+      try {
+        // Clear the canvas
+        this.hydra.eval("solid(0, 0, 0).out()");
+      } catch (error) {
+        console.warn("Error stopping Hydra visuals:", error);
+      }
     }
 
     this.currentVisual = "";
