@@ -55,6 +55,17 @@ export interface MusicService {
   isPlaying: () => boolean;
 }
 
+export interface VisualsService {
+  startVisuals: (canvas: HTMLCanvasElement, track: StrudelTrack, playbackPosition?: number) => Promise<void>;
+  updatePlaybackPosition: (position: number) => void;
+  pause: () => void;
+  stop: () => void;
+  resume: (track: StrudelTrack, position: number) => void;
+  isRunning: () => boolean;
+  getCurrentVisual: () => string;
+  destroy: () => void;
+}
+
 export interface ApiService {
   fetchTrack: (trackId: string) => Promise<StrudelTrack>;
   fetchTracks: () => Promise<StrudelTrack[]>;

@@ -6,7 +6,7 @@ const mockTracks: StrudelTrack[] = [
     id: "ethereum_track_1",
     timestamp: "2025-01-01T00:00:00Z",
     chain_name: "ethereum",
-    strudel_code_string: 'd1 $ s "bd*4" # n "0 2 4 7" # room 0.3',
+    strudel_code_string: 'sine.freq(220).out()',
     source_kpis: {
       chain_name: "ethereum",
       timestamp: "2025-01-01T00:00:00Z",
@@ -35,7 +35,7 @@ const mockTracks: StrudelTrack[] = [
     id: "polygon_track_1",
     timestamp: "2025-01-01T00:00:00Z",
     chain_name: "polygon",
-    strudel_code_string: 'd1 $ s "hh*8" # pan (sine * 0.5)',
+    strudel_code_string: 'sine.freq(330).out()',
     source_kpis: {
       chain_name: "polygon",
       timestamp: "2025-01-01T00:00:00Z",
