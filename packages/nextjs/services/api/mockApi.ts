@@ -6,7 +6,14 @@ const mockTracks: StrudelTrack[] = [
     id: "ethereum_track_1",
     timestamp: "2025-01-01T00:00:00Z",
     chain_name: "ethereum",
-    strudel_code_string: 'sine.freq(220).out()',
+    strudel_code_string: `setcps(1)
+n("<0 1 2 3 4>*8").scale('C4 major')
+.s("gm_lead_6_voice")
+.clip(sine.range(.2,.8).slow(8))
+.jux(rev)
+.room(2)
+.sometimes(add(note("12")))
+.lpf(perlin.range(200,20000).slow(4))`,
     source_kpis: {
       chain_name: "ethereum",
       timestamp: "2025-01-01T00:00:00Z",
@@ -35,7 +42,14 @@ const mockTracks: StrudelTrack[] = [
     id: "polygon_track_1",
     timestamp: "2025-01-01T00:00:00Z",
     chain_name: "polygon",
-    strudel_code_string: 'sine.freq(330).out()',
+    strudel_code_string: `setcps(1.4)
+n("<0 2 4 6 7>*6").scale('D4 minor')
+.s("gm_lead_1_square")
+.clip(sine.range(.1,.6).slow(16))
+.jux(rev)
+.room(3)
+.sometimes(add(note("7")))
+.hpf(perlin.range(100,5000).slow(6))`,
     source_kpis: {
       chain_name: "polygon",
       timestamp: "2025-01-01T00:00:00Z",
@@ -64,7 +78,13 @@ const mockTracks: StrudelTrack[] = [
     id: "base_track_1",
     timestamp: "2025-01-01T00:00:00Z",
     chain_name: "base",
-    strudel_code_string: 'd1 $ s "bd*2" # n "0 0 0 7" # gain 1.2',
+    strudel_code_string: `setcps(0.9)
+n("<0 3 5 7 9 12>*4").scale('G4 minor')
+.s("gm_lead_3_calliope")
+.clip(sine.range(.3,.9).slow(4))
+.room(1)
+.sometimes(add(note("5")))
+.lpf(perlin.range(500,15000).slow(3))`,
     source_kpis: {
       chain_name: "base",
       timestamp: "2025-01-01T00:00:00Z",
@@ -93,7 +113,14 @@ const mockTracks: StrudelTrack[] = [
     id: "arbitrum_track_1",
     timestamp: "2025-01-01T00:00:00Z",
     chain_name: "arbitrum",
-    strudel_code_string: 'd1 $ s "piano*4" # n (run 8) # room 0.5 # pan sine',
+    strudel_code_string: `setcps(1.1)
+n("<0 1 2 3 4>*8").scale('A4 minor')
+.s("gm_lead_5_charang")
+.clip(sine.range(.2,.7).slow(12))
+.jux(rev)
+.room(2)
+.sometimes(add(note("8")))
+.lpf(perlin.range(300,18000).slow(5))`,
     source_kpis: {
       chain_name: "arbitrum",
       timestamp: "2025-01-01T00:00:00Z",

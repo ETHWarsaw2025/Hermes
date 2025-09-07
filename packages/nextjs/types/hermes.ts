@@ -48,12 +48,6 @@ export interface PlayerState {
   error: string | null;
 }
 
-export interface MusicService {
-  play: (strudelCode: string) => Promise<void>;
-  pause: () => void;
-  stop: () => void;
-  isPlaying: () => boolean;
-}
 
 export interface VisualsService {
   startVisuals: (canvas: HTMLCanvasElement, track: StrudelTrack, playbackPosition?: number) => Promise<void>;

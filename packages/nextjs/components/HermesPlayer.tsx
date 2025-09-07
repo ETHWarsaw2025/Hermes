@@ -1,57 +1,73 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MusicalNoteIcon, PauseIcon, PlayIcon, StopIcon } from "@heroicons/react/24/solid";
+import { MusicalNoteIcon } from "@heroicons/react/24/solid";
 import { PlayerState, StrudelTrack } from "~~/types/hermes";
 
-// API services are accessed via Next.js API routes
+// Component to render Strudel REPL with dynamic content
+const StrudelRepl = ({ code, onStrudelEvent }: { code: string; onStrudelEvent?: (event: any) => void }) => {
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+  const replId = `strudel-${Math.random().toString(36).substr(2, 9)}`;
 
-// Component to display Strudel code with a moving cursor
-const StrudelCodeWithCursor = ({
-  code,
-  position,
-  isPlaying,
-}: {
-  code: string;
-  position: number;
-  isPlaying: boolean;
-}) => {
-  // Calculate cursor position based on playback time
-  // This is a simplified approach - in reality, you'd need to parse the Strudel code
-  // and map time positions to character positions
-  const lines = code.split("\n");
-  const totalLines = lines.length;
-  const currentLine = Math.floor(((position % 4) * totalLines) / 4); // Cycle through lines every 4 seconds
-  const currentChar = Math.floor((position * 10) % lines[currentLine]?.length || 0);
+  useEffect(() => {
+    // Check if Strudel script is loaded
+    const checkScript = () => {
+      if (typeof window !== 'undefined' && (window as any).customElements && (window as any).customElements.get('strudel-repl')) {
+        setIsScriptLoaded(true);
+      } else {
+        setTimeout(checkScript, 100);
+      }
+    };
+    checkScript();
+  }, []);
+
+  useEffect(() => {
+    if (!isScriptLoaded) return;
+
+    // Set up event listeners for Strudel events after component mounts
+    const timer = setTimeout(() => {
+      const replElement = document.getElementById(replId);
+      if (replElement && onStrudelEvent) {
+        const handleStrudelEvent = (event: any) => {
+          console.log("🎵 Strudel event received:", event);
+          onStrudelEvent(event);
+        };
+
+        // Listen for custom Strudel events
+        replElement.addEventListener('strudel:start', handleStrudelEvent);
+        replElement.addEventListener('strudel:stop', handleStrudelEvent);
+        replElement.addEventListener('strudel:note', handleStrudelEvent);
+        
+        return () => {
+          replElement.removeEventListener('strudel:start', handleStrudelEvent);
+          replElement.removeEventListener('strudel:stop', handleStrudelEvent);
+          replElement.removeEventListener('strudel:note', handleStrudelEvent);
+        };
+      }
+    }, 500); // Longer delay to ensure Strudel is fully initialized
+
+    return () => clearTimeout(timer);
+  }, [isScriptLoaded, replId, onStrudelEvent]);
+
+  if (!isScriptLoaded) {
+    return (
+      <div className="w-full p-4 text-center text-white/70">
+        <div className="loading loading-spinner loading-sm mr-2"></div>
+        Loading Strudel...
+      </div>
+    );
+  }
 
   return (
-    <pre className="text-xs text-white/80 whitespace-pre-wrap font-mono leading-relaxed relative">
-      {lines.map((line, lineIndex) => (
-        <div key={lineIndex} className="relative">
-          {line.split("").map((char, charIndex) => {
-            const isCurrentPosition = isPlaying && lineIndex === currentLine && charIndex === currentChar;
-
-            return (
-              <span
-                key={charIndex}
-                className={`
-                  ${isCurrentPosition ? "bg-primary text-primary-content animate-pulse" : ""}
-                  ${isCurrentPosition ? "px-1 rounded" : ""}
-                `}
-              >
-                {char}
-              </span>
-            );
-          })}
-          {isPlaying && lineIndex === currentLine && (
-            <span
-              className="absolute top-0 left-0 w-0.5 h-4 bg-primary animate-pulse"
-              style={{ left: `${currentChar * 0.5}rem` }}
-            />
-          )}
-        </div>
-      ))}
-    </pre>
+    <div className="w-full">
+      <div
+        dangerouslySetInnerHTML={{
+          __html: `<strudel-repl id="${replId}"><!--
+${code}
+--></strudel-repl>`
+        }}
+      />
+    </div>
   );
 };
 
@@ -64,210 +80,113 @@ const HermesPlayer = () => {
   });
   const [tracks, setTracks] = useState<StrudelTrack[]>([]);
   const [selectedTrackId, setSelectedTrackId] = useState<string>("");
-  const [playbackPosition, setPlaybackPosition] = useState<number>(0);
-  const [strudelService, setStrudelService] = useState<any>(null);
   const [hydraService, setHydraService] = useState<any>(null);
   const [showVisuals, setShowVisuals] = useState<boolean>(true);
 
-  // Load available tracks on component mount
+  // Load tracks on component mount
   useEffect(() => {
     loadTracks();
   }, []);
 
-  // Cleanup services on unmount
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (strudelService) {
-        strudelService.destroy();
-      }
       if (hydraService) {
         hydraService.destroy();
       }
     };
-  }, [strudelService, hydraService]);
+  }, [hydraService]);
 
   const loadTracks = async () => {
     try {
-      setPlayerState(prev => ({ ...prev, isLoading: true, error: null }));
-      console.log("🔄 Loading tracks from API...");
-
-      // Use API route - can switch between mock and Golem by adding ?golem=true
+      setPlayerState(prev => ({ ...prev, isLoading: true }));
       const response = await fetch("/api/tracks");
-      console.log("📡 API Response status:", response.status);
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      const availableTracks = await response.json();
-      console.log("🎵 Loaded tracks:", availableTracks.length, "tracks");
-      console.log("🎵 First track:", availableTracks[0]);
-
-      setTracks(availableTracks);
-      setPlayerState(prev => ({ ...prev, isLoading: false }));
+      const data = await response.json();
+      setTracks(data.tracks || []);
+      setPlayerState(prev => ({ ...prev, isLoading: false, error: null }));
     } catch (error) {
-      console.error("❌ Error loading tracks:", error);
+      console.error("Error loading tracks:", error);
       setPlayerState(prev => ({
         ...prev,
+        isLoading: false,
         error: error instanceof Error ? error.message : "Failed to load tracks",
-        isLoading: false,
       }));
     }
   };
 
-  const handleTrackSelect = async (trackId: string) => {
-    try {
-      setPlayerState(prev => ({ ...prev, isLoading: true, error: null }));
-      console.log("🎯 Selecting track:", trackId);
-
-      // Use API route - can switch between mock and Golem by adding ?golem=true
-      const response = await fetch("/api/tracks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ trackId }),
-      });
-
-      console.log("📡 Track API Response status:", response.status);
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const track = await response.json();
-      console.log("🎵 Selected track:", track);
-
-      setPlayerState(prev => ({ ...prev, currentTrack: track, isLoading: false }));
+  const handleTrackSelect = (trackId: string) => {
+    const track = tracks.find(t => t.id === trackId);
+    if (track) {
       setSelectedTrackId(trackId);
-    } catch (error) {
-      console.error("❌ Error selecting track:", error);
-      setPlayerState(prev => ({
-        ...prev,
-        error: error instanceof Error ? error.message : "Failed to load track",
-        isLoading: false,
-      }));
+      setPlayerState(prev => ({ ...prev, currentTrack: track, error: null }));
     }
   };
 
-  const handlePlay = async () => {
-    if (!playerState.currentTrack) {
-      setPlayerState(prev => ({ ...prev, error: "No track selected" }));
-      return;
-    }
+  const handleStartVisuals = async (track: StrudelTrack) => {
+    if (!showVisuals) return;
 
-    // Check if we're in browser environment
-    if (typeof window === "undefined") {
-      setPlayerState(prev => ({ ...prev, error: "Audio engine not available on server side" }));
-      return;
-    }
-
-      try {
-        setPlayerState(prev => ({ ...prev, isLoading: true, error: null }));
-
-        // Dynamically import and create Strudel service only when needed
-        const { createStrudelMusicService } = await import("~~/services/music/strudelService");
-        const audioService = createStrudelMusicService();
-
-        // Set up position tracking callback
-        audioService.setOnPositionUpdate((position: number) => {
-          setPlaybackPosition(position);
-          // Update visuals with playback position
-          if (hydraService) {
-            hydraService.updatePlaybackPosition(position);
-          }
-        });
-
-        // Start audio
-        await audioService.play(playerState.currentTrack.strudel_code_string);
-        setStrudelService(audioService);
-
-        // Start visuals if enabled
-        if (showVisuals) {
-          try {
-            const { createHydraVisualsService } = await import("~~/services/visuals/hydraService");
-            const visualsService = createHydraVisualsService();
-            
-            // Get the canvas element
-            const canvas = document.getElementById("hydra-canvas") as HTMLCanvasElement;
-            if (canvas) {
-              await visualsService.startVisuals(canvas, playerState.currentTrack, 0);
-              setHydraService(visualsService);
-            }
-          } catch (visualError) {
-            console.warn("Failed to start visuals:", visualError);
-            // Continue without visuals
-          }
-        }
-
-        setPlayerState(prev => ({ ...prev, isPlaying: true, isLoading: false }));
-      } catch (error) {
-        setPlayerState(prev => ({
-          ...prev,
-          error: error instanceof Error ? error.message : "Failed to play track",
-          isLoading: false,
-        }));
-      }
-  };
-
-  const handlePause = async () => {
     try {
-      if (strudelService) {
-        strudelService.pause();
-      }
-      if (hydraService) {
-        hydraService.pause();
-      }
-      setPlayerState(prev => ({ ...prev, isPlaying: false }));
-    } catch (error) {
-      console.error("Error pausing:", error);
-    }
-  };
-
-  const handleStop = async () => {
-    try {
-      console.log("🛑 Stop button clicked, strudelService:", strudelService);
-      
-      if (strudelService) {
-        console.log("🔧 Calling strudelService.stop()");
-        strudelService.stop();
-      } else {
-        console.warn("⚠️ No strudelService available, trying to create one to stop audio");
-        // If no service, try to create one and stop it
-        try {
-          const { createStrudelMusicService } = await import("~~/services/music/strudelService");
-          const emergencyService = createStrudelMusicService();
-          emergencyService.stop();
-        } catch (emergencyError) {
-          console.error("Failed to create emergency stop service:", emergencyError);
-        }
-      }
-      
+      // Stop existing visuals first
       if (hydraService) {
         hydraService.stop();
+        hydraService.destroy();
       }
-      
-      setPlayerState(prev => ({ ...prev, isPlaying: false }));
-      setPlaybackPosition(0);
-      
-      // Clear the service references
-      setStrudelService(null);
-      setHydraService(null);
-      
-      // Nuclear option: If audio is still playing after 2 seconds, offer to refresh
-      setTimeout(() => {
-        if (typeof window !== 'undefined') {
-          const isStillPlaying = confirm(
-            "Audio might still be playing. Would you like to refresh the page to completely stop it?"
-          );
-          if (isStillPlaying) {
-            window.location.reload();
-          }
-        }
-      }, 2000);
+
+      // Dynamically import Hydra service
+      const { createHydraVisualsService } = await import("~~/services/visuals/hydraService");
+      const service = createHydraVisualsService();
+      setHydraService(service);
+
+      const canvas = document.getElementById("hydra-canvas") as HTMLCanvasElement;
+      if (canvas) {
+        console.log("🎨 Starting visuals for track:", track.chain_name);
+        await service.startVisuals(canvas, track);
+      }
     } catch (error) {
-      console.error("Error stopping:", error);
+      console.error("Error starting visuals:", error);
     }
   };
 
+  const handleStopVisuals = () => {
+    if (hydraService) {
+      hydraService.stop();
+      setHydraService(null);
+    }
+  };
+
+  const handleStrudelEvent = (event: any) => {
+    console.log("🎵 Strudel event:", event);
+    
+    if (hydraService && playerState.currentTrack) {
+      switch (event.type) {
+        case 'strudel:start':
+          console.log("🎵 Strudel started playing");
+          break;
+        case 'strudel:stop':
+          console.log("🎵 Strudel stopped playing");
+          break;
+        case 'strudel:note':
+          console.log("🎵 Strudel note event:", event.detail);
+          // Update Hydra visuals based on note events
+          if (event.detail && event.detail.note) {
+            hydraService.updatePlaybackPosition(event.detail.time || 0);
+          }
+          break;
+      }
+    }
+  };
+
+  // Handle track selection and start visuals
+  useEffect(() => {
+    if (playerState.currentTrack && showVisuals) {
+      handleStartVisuals(playerState.currentTrack);
+    } else if (!showVisuals) {
+      handleStopVisuals();
+    }
+  }, [playerState.currentTrack, showVisuals]);
 
   return (
     <div className="min-h-screen w-full relative overflow-hidden bg-black">
@@ -275,12 +194,17 @@ const HermesPlayer = () => {
       <canvas
         id="hydra-canvas"
         className="absolute inset-0 w-full h-full object-cover"
-        style={{ display: showVisuals ? "block" : "none" }}
+        width={1920}
+        height={1080}
+        style={{ 
+          display: showVisuals ? "block" : "none",
+          backgroundColor: "black"
+        }}
       />
-      
+
       {/* Dark overlay for better text readability */}
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
-      
+
       {/* UI Overlay */}
       <div className="relative z-10 min-h-screen flex flex-col p-6">
         {/* Header */}
@@ -293,8 +217,7 @@ const HermesPlayer = () => {
         </div>
 
         {/* Controls Section */}
-        <div className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full">
-
+        <div className="flex-1 flex flex-col justify-center max-w-4xl mx-auto w-full">
           {/* Track Selection */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-white mb-2">Select Track</label>
@@ -339,34 +262,25 @@ const HermesPlayer = () => {
             </div>
           )}
 
-          {/* Strudel Pattern Code */}
+          {/* Strudel REPL */}
           {playerState.currentTrack && (
             <div className="mb-6">
               <div className="flex justify-between items-center mb-2">
-                <h4 className="font-semibold text-white">Strudel Pattern Code</h4>
-                <div className="flex items-center gap-2">
-                  {playerState.isPlaying && (
-                    <div className="flex items-center gap-1 text-xs text-primary">
-                      <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                      <span className="text-white">{playbackPosition.toFixed(1)}s</span>
-                    </div>
-                  )}
-                  <button
-                    className="btn btn-xs btn-outline border-white/30 text-white hover:bg-white/10"
-                    onClick={() => {
-                      navigator.clipboard.writeText(playerState.currentTrack?.strudel_code_string || "");
-                    }}
-                    title="Copy to clipboard"
-                  >
-                    📋 Copy
-                  </button>
-                </div>
+                <h4 className="font-semibold text-white">Strudel Pattern</h4>
+                <button
+                  className="btn btn-xs btn-outline border-white/30 text-white hover:bg-white/10"
+                  onClick={() => {
+                    navigator.clipboard.writeText(playerState.currentTrack?.strudel_code_string || "");
+                  }}
+                  title="Copy to clipboard"
+                >
+                  📋 Copy
+                </button>
               </div>
-              <div className="bg-black/30 rounded-lg p-4 max-h-64 overflow-y-auto relative backdrop-blur-sm border border-white/20">
-                <StrudelCodeWithCursor
-                  code={playerState.currentTrack.strudel_code_string}
-                  position={playbackPosition}
-                  isPlaying={playerState.isPlaying}
+              <div className="bg-black/30 rounded-lg p-4 backdrop-blur-sm border border-white/20">
+                <StrudelRepl 
+                  code={playerState.currentTrack.strudel_code_string} 
+                  onStrudelEvent={handleStrudelEvent}
                 />
               </div>
               <div className="mt-2 text-xs text-white/60">
@@ -376,41 +290,6 @@ const HermesPlayer = () => {
               </div>
             </div>
           )}
-
-          {/* Control Buttons */}
-          <div className="flex justify-center space-x-4 mb-6">
-            {!playerState.isPlaying ? (
-              <button
-                className="btn btn-primary btn-lg bg-primary/80 border-primary/50 hover:bg-primary backdrop-blur-sm"
-                onClick={handlePlay}
-                disabled={!playerState.currentTrack || playerState.isLoading}
-              >
-                {playerState.isLoading ? (
-                  <span className="loading loading-spinner loading-sm"></span>
-                ) : (
-                  <PlayIcon className="h-6 w-6" />
-                )}
-                Play
-              </button>
-            ) : (
-              <button 
-                className="btn btn-secondary btn-lg bg-secondary/80 border-secondary/50 hover:bg-secondary backdrop-blur-sm" 
-                onClick={handlePause}
-              >
-                <PauseIcon className="h-6 w-6" />
-                Pause
-              </button>
-            )}
-
-            <button
-              className="btn btn-outline btn-lg border-white/30 text-white hover:bg-white/10 backdrop-blur-sm"
-              onClick={handleStop}
-              disabled={!playerState.currentTrack}
-            >
-              <StopIcon className="h-6 w-6" />
-              Stop
-            </button>
-          </div>
 
           {/* Error Display */}
           {playerState.error && (
@@ -448,9 +327,7 @@ const HermesPlayer = () => {
 
         {/* Status */}
         <div className="text-center text-sm text-white/70 pb-4">
-          {playerState.isPlaying && "🎵 Now Playing"}
-          {!playerState.isPlaying && playerState.currentTrack && "⏸️ Paused"}
-          {!playerState.currentTrack && "🎵 Select a track to begin"}
+          {playerState.currentTrack ? "🎵 Use the Strudel controls above to play" : "🎵 Select a track to begin"}
         </div>
       </div>
     </div>
